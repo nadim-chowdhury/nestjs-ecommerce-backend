@@ -1,0 +1,137 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Product } from './entities/product.entity';
+import { Category } from './entities/category.entity';
+import { Inventory } from './entities/inventory.entity';
+import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
+import { CreateCategoryDto } from './dto/create-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
+
+@Injectable()
+export class ProductsService {
+  constructor(
+    @InjectRepository(Product)
+    private productRepository: Repository<Product>,
+    @InjectRepository(Category)
+    private categoryRepository: Repository<Category>,
+    @InjectRepository(Inventory)
+    private inventoryRepository: Repository<Inventory>,
+  ) {}
+
+  // Create a new product
+  async createProduct(createProductDto: CreateProductDto): Promise<Product> {
+    const { categoryId, stockQuantity, bulkPricing, ...rest } =
+      createProductDto;
+
+    const category = await this.categoryRepository.findOneBy({
+      id: categoryId,
+    });
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+
+    const inventory = this.inventoryRepository.create({
+      stockQuantity,
+      bulkPricing,
+    });
+
+    const product = this.productRepository.create({
+      ...rest,
+      category,
+      inventory: await this.inventoryRepository.save(inventory),
+    });
+
+    return this.productRepository.save(product);
+  }
+
+  // Update product
+  async updateProduct(
+    id: number,
+    updateProductDto: UpdateProductDto,
+  ): Promise<Product> {
+    const product = await this.productRepository.findOne({
+      where: { id },
+      relations: ['inventory', 'category'],
+    });
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    const { categoryId, stockQuantity, bulkPricing, ...rest } =
+      updateProductDto;
+
+    if (categoryId) {
+      const category = await this.categoryRepository.findOneBy({
+        id: categoryId,
+      });
+      if (!category) {
+        throw new NotFoundException('Category not found');
+      }
+      product.category = category;
+    }
+
+    if (stockQuantity !== undefined || bulkPricing !== undefined) {
+      Object.assign(product.inventory, {
+        stockQuantity: stockQuantity ?? product.inventory.stockQuantity,
+        bulkPricing: bulkPricing ?? product.inventory.bulkPricing,
+      });
+      await this.inventoryRepository.save(product.inventory);
+    }
+
+    Object.assign(product, rest);
+
+    return this.productRepository.save(product);
+  }
+
+  // Find all products
+  async findAllProducts(): Promise<Product[]> {
+    return this.productRepository.find({
+      relations: ['inventory', 'category'],
+    });
+  }
+
+  // Find a product by ID
+  async findProductById(id: number): Promise<Product> {
+    const product = await this.productRepository.findOne({
+      where: { id },
+      relations: ['inventory', 'category'],
+    });
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    return product;
+  }
+
+  // Create a new category
+  async createCategory(
+    createCategoryDto: CreateCategoryDto,
+  ): Promise<Category> {
+    const category = this.categoryRepository.create(createCategoryDto);
+    return this.categoryRepository.save(category);
+  }
+
+  // Update a category
+  async updateCategory(
+    id: number,
+    updateCategoryDto: UpdateCategoryDto,
+  ): Promise<Category> {
+    const category = await this.categoryRepository.findOneBy({ id });
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+
+    Object.assign(category, updateCategoryDto);
+
+    return this.categoryRepository.save(category);
+  }
+
+  // Find all categories
+  async findAllCategories(): Promise<Category[]> {
+    return this.categoryRepository.find({ relations: ['products'] });
+  }
+}
