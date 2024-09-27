@@ -25,24 +25,31 @@ export class ProductsService {
     const { categoryId, stockQuantity, bulkPricing, ...rest } =
       createProductDto;
 
-    const category = await this.categoryRepository.findOneBy({
-      id: categoryId,
+    // Fetch the Category entity based on the categoryId
+    const category = await this.categoryRepository.findOne({
+      where: { id: categoryId },
     });
+    console.log('category:', category);
+
     if (!category) {
       throw new NotFoundException('Category not found');
     }
 
+    // Create and save the inventory
     const inventory = this.inventoryRepository.create({
       stockQuantity,
       bulkPricing,
     });
+    await this.inventoryRepository.save(inventory);
 
+    // Create the product and associate it with the Category and Inventory
     const product = this.productRepository.create({
       ...rest,
-      category,
-      inventory: await this.inventoryRepository.save(inventory),
+      category, // Assign the full Category entity here
+      inventory,
     });
 
+    // Save the product
     return this.productRepository.save(product);
   }
 
@@ -63,9 +70,10 @@ export class ProductsService {
     const { categoryId, stockQuantity, bulkPricing, ...rest } =
       updateProductDto;
 
+    // Update the category if provided
     if (categoryId) {
-      const category = await this.categoryRepository.findOneBy({
-        id: categoryId,
+      const category = await this.categoryRepository.findOne({
+        where: { id: categoryId },
       });
       if (!category) {
         throw new NotFoundException('Category not found');
@@ -73,6 +81,7 @@ export class ProductsService {
       product.category = category;
     }
 
+    // Update inventory if necessary
     if (stockQuantity !== undefined || bulkPricing !== undefined) {
       Object.assign(product.inventory, {
         stockQuantity: stockQuantity ?? product.inventory.stockQuantity,
@@ -136,7 +145,7 @@ export class ProductsService {
     id: number,
     updateCategoryDto: UpdateCategoryDto,
   ): Promise<Category> {
-    const category = await this.categoryRepository.findOneBy({ id });
+    const category = await this.categoryRepository.findOne({ where: { id } });
     if (!category) {
       throw new NotFoundException('Category not found');
     }

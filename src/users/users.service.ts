@@ -5,6 +5,7 @@ import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Address } from './entities/address.entity';
+import * as bcrypt from 'bcryptjs'; // To hash passwords
 
 @Injectable()
 export class UsersService {
@@ -15,7 +16,11 @@ export class UsersService {
 
   // Create a new user
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const user = this.usersRepository.create(createUserDto);
+    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+    const user = this.usersRepository.create({
+      ...createUserDto,
+      password: hashedPassword, // Store hashed password
+    });
     return this.usersRepository.save(user);
   }
 

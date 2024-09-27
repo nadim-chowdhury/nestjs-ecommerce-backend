@@ -48,6 +48,7 @@ export class Product {
   @ManyToOne(() => Category, (category) => category.products, {
     onDelete: 'SET NULL',
   })
+  @JoinColumn({ name: 'categoryId' }) // Explicitly define the categoryId foreign key column
   category: Category;
 
   @ApiProperty({

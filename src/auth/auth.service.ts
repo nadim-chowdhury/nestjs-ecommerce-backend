@@ -46,7 +46,7 @@ export class AuthService {
     };
   }
 
-  // OTP Login via AWS SNS or Fast2SMS
+  // OTP Login via AWS SNS
   async sendOtp(mobileNumber: string) {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
