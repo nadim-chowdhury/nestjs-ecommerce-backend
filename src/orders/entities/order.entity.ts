@@ -10,42 +10,66 @@ import {
 import { DeliveryPerson } from 'src/delivery/entities/delivery-person.entity';
 import { OrderItem } from './order-item.entity';
 import { User } from 'src/users/entities/user.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Entity('orders')
 export class Order {
+  @ApiProperty({ description: 'Unique identifier for the order', example: 1 })
   @PrimaryGeneratedColumn()
   id: number;
 
+  @ApiProperty({ description: 'The user who placed the order' })
   @ManyToOne(() => User, (user) => user.orders, { onDelete: 'CASCADE' })
-  user: User; // This tracks the user who placed the order
+  user: User;
 
+  @ApiProperty({ description: 'Total price of the order', example: 199.99 })
   @Column('decimal', { precision: 10, scale: 2 })
-  total: number; // Total price of the order
+  total: number;
 
+  @ApiProperty({
+    description: 'The current status of the order',
+    example: 'placed',
+    enum: ['placed', 'shipped', 'delivered', 'cancelled', 'returned'],
+  })
   @Column({
     type: 'enum',
     enum: ['placed', 'shipped', 'delivered', 'cancelled', 'returned'],
     default: 'placed',
   })
-  status: string; // The current status of the order
+  status: string;
 
+  @ApiProperty({
+    description: 'The delivery address for the order',
+    example: '123 Main St, Cityville',
+  })
   @Column()
-  deliveryAddress: string; // The address where the order will be delivered
+  deliveryAddress: string;
 
+  @ApiProperty({
+    description: 'Detailed description of the order or a JSON object',
+    example: '{"items": [...]}',
+  })
   @Column()
-  orderDetails: string; // Can be a JSON or detailed order description
+  orderDetails: string;
 
+  @ApiProperty({ description: 'The date when the order was created' })
   @CreateDateColumn()
   createdAt: Date;
 
+  @ApiProperty({ description: 'The date when the order was last updated' })
   @UpdateDateColumn()
   updatedAt: Date;
 
+  @ApiProperty({ description: 'List of items in the order' })
   @OneToMany(() => OrderItem, (orderItem) => orderItem.order, { cascade: true })
-  items: OrderItem[]; // The list of items in the order
+  items: OrderItem[];
 
+  @ApiProperty({
+    description: 'The delivery person assigned to this order',
+    required: false,
+  })
   @ManyToOne(() => DeliveryPerson, (deliveryPerson) => deliveryPerson.orders, {
     nullable: true,
   })
-  deliveryPerson: DeliveryPerson; // The delivery person assigned to this order, if any
+  deliveryPerson: DeliveryPerson;
 }

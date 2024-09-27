@@ -7,43 +7,63 @@ import {
   Get,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt/jwt-auth.guard';
+import {
+  LoginDto,
+  OtpDto,
+  EmailVerificationDto,
+  IdTokenDto,
+} from './dto/auth.dto';
 
+@ApiTags('Authentication') // Group this controller under the 'Authentication' tag in Swagger UI
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('login')
-  async login(@Body() body: { email: string; password: string }) {
+  @ApiOperation({ summary: 'User login with email and password' })
+  @ApiBody({ type: LoginDto }) // Define the structure of the request body
+  async login(@Body() body: LoginDto) {
     const user = await this.authService.validateUser(body.email, body.password);
     if (!user) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Invalid email or password');
     }
     return this.authService.login(user);
   }
 
   @Post('send-otp')
-  async sendOtp(@Body() body: { mobileNumber: string }) {
+  @ApiOperation({ summary: 'Send OTP to the provided mobile number' })
+  @ApiBody({ type: OtpDto })
+  async sendOtp(@Body() body: OtpDto) {
     return this.authService.sendOtp(body.mobileNumber);
   }
 
   @Post('verify-otp')
-  async verifyOtp(@Body() body: { mobileNumber: string; otp: string }) {
+  @ApiOperation({ summary: 'Verify the OTP sent to the mobile number' })
+  @ApiBody({ type: OtpDto })
+  async verifyOtp(@Body() body: OtpDto) {
     return this.authService.verifyOtp(body.mobileNumber, body.otp);
   }
 
   @Post('send-email-verification')
-  async sendEmailVerification(@Body() body: { email: string }) {
+  @ApiOperation({ summary: 'Send email verification link' })
+  @ApiBody({ type: EmailVerificationDto })
+  async sendEmailVerification(@Body() body: EmailVerificationDto) {
     return this.authService.sendEmailVerification(body.email);
   }
 
   @Post('verify-email-token')
-  async verifyEmailToken(@Body() body: { idToken: string }) {
+  @ApiOperation({ summary: 'Verify the email verification token' })
+  @ApiBody({ type: IdTokenDto })
+  async verifyEmailToken(@Body() body: IdTokenDto) {
     return this.authService.verifyEmailToken(body.idToken);
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth() // Indicate that this endpoint requires JWT authentication
+  @ApiOperation({ summary: 'Get the profile of the authenticated user' })
   @Get('profile')
   getProfile(@Request() req) {
     return req.user;

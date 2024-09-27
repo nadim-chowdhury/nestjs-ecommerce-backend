@@ -107,6 +107,22 @@ export class ProductsService {
     return product;
   }
 
+  // Delete product by ID
+  async removeProduct(id: number): Promise<void> {
+    const result = await this.productRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Product with ID ${id} not found`);
+    }
+  }
+
+  // Delete category by ID
+  async removeCategory(id: number): Promise<void> {
+    const result = await this.categoryRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Category with ID ${id} not found`);
+    }
+  }
+
   // Create a new category
   async createCategory(
     createCategoryDto: CreateCategoryDto,

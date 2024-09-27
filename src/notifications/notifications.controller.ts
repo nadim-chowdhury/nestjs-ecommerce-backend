@@ -1,30 +1,43 @@
 import { Controller, Post, Body } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBody } from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
 import { SendOtpDto } from './dto/send-otp.dto';
+import { SendPushNotificationDto } from './dto/send-push-notification.dto';
+import { SendEmailVerificationDto } from './dto/send-email-verification.dto';
 
+@ApiTags('Notifications') // Group for Swagger UI
 @Controller('notifications')
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
-  // Endpoint to send OTP via AWS SNS
   @Post('send-otp')
+  @ApiOperation({ summary: 'Send OTP via AWS SNS' })
+  @ApiBody({ type: SendOtpDto })
   sendOtp(@Body() sendOtpDto: SendOtpDto) {
     return this.notificationsService.sendOtp(sendOtpDto);
   }
 
-  // Endpoint to trigger Firebase push notification
   @Post('send-push')
+  @ApiOperation({ summary: 'Send Firebase push notification' })
+  @ApiBody({ type: SendPushNotificationDto })
   sendPushNotification(
-    @Body('token') token: string,
-    @Body('title') title: string,
-    @Body('body') body: string,
+    @Body() sendPushNotificationDto: SendPushNotificationDto,
   ) {
-    return this.notificationsService.sendPushNotification(token, title, body);
+    return this.notificationsService.sendPushNotification(
+      sendPushNotificationDto.token,
+      sendPushNotificationDto.title,
+      sendPushNotificationDto.body,
+    );
   }
 
-  // Endpoint to send email verification
   @Post('send-email-verification')
-  sendEmailVerification(@Body('email') email: string) {
-    return this.notificationsService.sendEmailVerification(email);
+  @ApiOperation({ summary: 'Send email verification' })
+  @ApiBody({ type: SendEmailVerificationDto })
+  sendEmailVerification(
+    @Body() sendEmailVerificationDto: SendEmailVerificationDto,
+  ) {
+    return this.notificationsService.sendEmailVerification(
+      sendEmailVerificationDto.email,
+    );
   }
 }
