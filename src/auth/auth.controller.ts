@@ -17,14 +17,14 @@ import {
   IdTokenDto,
 } from './dto/auth.dto';
 
-@ApiTags('Authentication') // Group this controller under the 'Authentication' tag in Swagger UI
+@ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('login')
   @ApiOperation({ summary: 'User login with email and password' })
-  @ApiBody({ type: LoginDto }) // Define the structure of the request body
+  @ApiBody({ type: LoginDto })
   async login(@Body() body: LoginDto) {
     const user = await this.authService.validateUser(body.email, body.password);
     if (!user) {
@@ -59,13 +59,5 @@ export class AuthController {
   @ApiBody({ type: IdTokenDto })
   async verifyEmailToken(@Body() body: IdTokenDto) {
     return this.authService.verifyEmailToken(body.idToken);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth() // Indicate that this endpoint requires JWT authentication
-  @ApiOperation({ summary: 'Get the profile of the authenticated user' })
-  @Get('profile')
-  getProfile(@Request() req) {
-    return req.user;
   }
 }

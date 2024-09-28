@@ -5,11 +5,13 @@ import { NotificationLog } from './entities/notification-log.entity';
 import { SendOtpDto } from './dto/send-otp.dto';
 import * as admin from 'firebase-admin';
 import * as AWS from 'aws-sdk';
+import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
   private sns: AWS.SNS;
+  private transporter: nodemailer.Transporter;
 
   constructor(
     @InjectRepository(NotificationLog)
@@ -23,6 +25,15 @@ export class NotificationsService {
     // Initialize Firebase Admin SDK
     admin.initializeApp({
       credential: admin.credential.applicationDefault(),
+    });
+
+    // Initialize Nodemailer transporter (you can replace SMTP settings with your email provider's details)
+    this.transporter = nodemailer.createTransport({
+      service: 'gmail', // For example, using Gmail
+      auth: {
+        user: 'your-email@gmail.com',
+        pass: 'your-email-password', // Use environment variables in production
+      },
     });
   }
 
@@ -85,28 +96,33 @@ export class NotificationsService {
     }
   }
 
-  // Send Email via Firebase
-  async sendEmailVerification(email: string): Promise<void> {
-    const actionCodeSettings = {
-      url: `https://your-app-url/verify-email?email=${email}`,
-      handleCodeInApp: true,
+  // Send a general email notification via Nodemailer
+  async sendEmailNotification(
+    email: string,
+    subject: string,
+    content: string,
+  ): Promise<void> {
+    const mailOptions = {
+      from: 'your-email@gmail.com',
+      to: email,
+      subject: subject,
+      text: content, // Can be plain text or HTML
     };
 
     try {
-      await admin
-        .auth()
-        .generateEmailVerificationLink(email, actionCodeSettings);
+      await this.transporter.sendMail(mailOptions);
 
+      // Log the email notification
       const log = this.notificationLogRepository.create({
-        type: 'firebase-email',
+        type: 'email',
         recipient: email,
-        message: 'Email verification link sent.',
+        message: `Email sent: ${subject}`,
       });
       await this.notificationLogRepository.save(log);
 
-      this.logger.log(`Email verification link sent to ${email}`);
+      this.logger.log(`Email sent successfully to ${email}`);
     } catch (error) {
-      this.logger.error('Error sending email verification', error);
+      this.logger.error('Error sending email notification', error);
       throw error;
     }
   }

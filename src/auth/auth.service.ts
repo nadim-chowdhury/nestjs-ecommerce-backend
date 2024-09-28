@@ -56,22 +56,27 @@ export class AuthService {
       PhoneNumber: `+91${mobileNumber}`,
     });
 
-    await this.snsClient.send(command);
+    try {
+      await this.snsClient.send(command);
+      // Save OTP with expiration (e.g., 5 minutes) in the database or cache
+      await this.usersService.saveOtpForUser(mobileNumber, otp, 300); // 300 seconds = 5 minutes
 
-    // Save the OTP against the user in a database or cache (e.g., Redis)
-    // Example: await this.usersService.saveOtpForUser(mobileNumber, otp);
-
-    return { message: 'OTP sent successfully' };
+      return { message: 'OTP sent successfully' };
+    } catch (error) {
+      throw new BadRequestException('Failed to send OTP');
+    }
   }
 
   // Verify OTP
   async verifyOtp(mobileNumber: string, otp: string) {
-    const isValidOtp = true; // Check OTP against the stored value in DB
+    const storedOtp = await this.usersService.getOtpForUser(mobileNumber);
 
-    if (!isValidOtp) {
-      throw new BadRequestException('Invalid OTP');
+    // Check if OTP is valid and not expired
+    if (!storedOtp || storedOtp !== otp) {
+      throw new BadRequestException('Invalid or expired OTP');
     }
 
+    // Create user if they don't exist
     const user = await this.usersService.findOrCreateByMobile(mobileNumber);
     const payload = { mobile: user.mobileNumber, sub: user.id };
 
@@ -91,8 +96,24 @@ export class AuthService {
       .auth()
       .generateEmailVerificationLink(email);
 
-    // Send the email (you can use a service like SendGrid, Nodemailer, etc.)
+    // Implement sending email logic via SendGrid or Nodemailer
+    const mailOptions = {
+      from: 'noreply@yourapp.com',
+      to: email,
+      subject: 'Verify your email',
+      text: `Click the following link to verify your email: ${verificationLink}`,
+    };
+
+    // Send email using an external service
+    await this.sendEmail(mailOptions);
+
     return { message: 'Verification email sent' };
+  }
+
+  // Mock function for sending email (replace with actual Nodemailer/SendGrid implementation)
+  async sendEmail(mailOptions: any) {
+    // Use a service like SendGrid or Nodemailer to send the email
+    console.log('Sending email:', mailOptions);
   }
 
   // Verify Firebase email token

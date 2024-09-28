@@ -3,7 +3,7 @@ import { ApiTags, ApiOperation, ApiBody } from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
 import { SendOtpDto } from './dto/send-otp.dto';
 import { SendPushNotificationDto } from './dto/send-push-notification.dto';
-import { SendEmailVerificationDto } from './dto/send-email-verification.dto';
+import { SendEmailNotificationDto } from './dto/send-email-notification.dto';
 
 @ApiTags('Notifications') // Group for Swagger UI
 @Controller('notifications')
@@ -30,14 +30,16 @@ export class NotificationsController {
     );
   }
 
-  @Post('send-email-verification')
-  @ApiOperation({ summary: 'Send email verification' })
-  @ApiBody({ type: SendEmailVerificationDto })
-  sendEmailVerification(
-    @Body() sendEmailVerificationDto: SendEmailVerificationDto,
+  @Post('send-email-notification')
+  @ApiOperation({ summary: 'Send general email notification' })
+  @ApiBody({ type: SendEmailNotificationDto })
+  sendEmailNotification(
+    @Body() sendEmailNotificationDto: SendEmailNotificationDto,
   ) {
-    return this.notificationsService.sendEmailVerification(
-      sendEmailVerificationDto.email,
+    return this.notificationsService.sendEmailNotification(
+      sendEmailNotificationDto.email,
+      sendEmailNotificationDto.subject,
+      sendEmailNotificationDto.content,
     );
   }
 }
