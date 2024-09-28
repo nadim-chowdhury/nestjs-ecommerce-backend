@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString, IsObject } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateProductDto {
@@ -55,5 +55,22 @@ export class UpdateProductDto {
     example: { '100': 94000, '500': 440000 },
   })
   @IsOptional()
+  @IsObject()
   bulkPricing?: Record<string, number>;
+
+  @ApiPropertyOptional({
+    description: 'The updated weight of the product in kilograms',
+    example: '1.8',
+  })
+  @IsOptional()
+  @IsString()
+  weight?: string;
+
+  @ApiPropertyOptional({
+    description: 'The updated condition of the product',
+    example: 'Refurbished',
+  })
+  @IsOptional()
+  @IsString()
+  condition?: string;
 }

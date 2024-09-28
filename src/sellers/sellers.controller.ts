@@ -11,9 +11,9 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { SellersService } from './sellers.service';
 import { CreateSellerDto } from './dto/create-seller.dto';
 import { UpdateSellerDto } from './dto/update-seller.dto';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
+import { CreateProductDto } from 'src/products/dto/create-product.dto';
+import { UpdateProductDto } from 'src/products/dto/update-product.dto';
 
 @ApiTags('Sellers')
 @Controller('sellers')

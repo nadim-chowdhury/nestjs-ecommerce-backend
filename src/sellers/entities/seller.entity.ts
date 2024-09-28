@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Product } from 'src/products/entities/product.entity';
 import {
   Entity,
   Column,
@@ -7,7 +8,6 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Product } from './product.entity';
 
 @Entity('sellers')
 export class Seller {

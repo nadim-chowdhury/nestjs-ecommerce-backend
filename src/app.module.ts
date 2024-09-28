@@ -10,6 +10,9 @@ import { OrdersModule } from './orders/orders.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ReportsModule } from './reports/reports.module';
 import { LoggerModule } from 'nestjs-pino';
+import { CartModule } from './cart/cart.module';
+import { ReviewsModule } from './reviews/reviews.module';
+import { WishlistModule } from './wishlist/wishlist.module';
 
 @Module({
   imports: [
@@ -55,6 +58,9 @@ import { LoggerModule } from 'nestjs-pino';
     OrdersModule,
     NotificationsModule,
     ReportsModule,
+    ReviewsModule,
+    CartModule,
+    WishlistModule,
   ],
 })
 export class AppModule {}

@@ -29,7 +29,6 @@ export class ProductsService {
     const category = await this.categoryRepository.findOne({
       where: { id: categoryId },
     });
-    console.log('category:', category);
 
     if (!category) {
       throw new NotFoundException('Category not found');

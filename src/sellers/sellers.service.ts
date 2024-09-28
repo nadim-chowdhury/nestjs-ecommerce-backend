@@ -2,17 +2,20 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Seller } from './entities/seller.entity';
-import { Product } from './entities/product.entity';
 import { CreateSellerDto } from './dto/create-seller.dto';
 import { UpdateSellerDto } from './dto/update-seller.dto';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
+import { Product } from 'src/products/entities/product.entity';
+import { Category } from 'src/products/entities/category.entity';
+import { CreateProductDto } from 'src/products/dto/create-product.dto';
+import { UpdateProductDto } from 'src/products/dto/update-product.dto';
 
 @Injectable()
 export class SellersService {
   constructor(
     @InjectRepository(Seller) private sellersRepository: Repository<Seller>,
     @InjectRepository(Product) private productsRepository: Repository<Product>,
+    @InjectRepository(Category)
+    private categoryRepository: Repository<Category>, // Inject Category repository
   ) {}
 
   // Create new seller
@@ -46,10 +49,25 @@ export class SellersService {
     createProductDto: CreateProductDto,
   ): Promise<Product> {
     const seller = await this.findOneSeller(sellerId);
+
+    // Fetch Category entity using categoryId from DTO
+    const category = await this.categoryRepository.findOne({
+      where: { id: createProductDto.categoryId },
+    });
+
+    if (!category) {
+      throw new NotFoundException(
+        `Category with ID ${createProductDto.categoryId} not found`,
+      );
+    }
+
+    // Create and associate product with seller and category
     const product = this.productsRepository.create({
       ...createProductDto,
-      seller, // Assuming Product has a seller relation
+      seller, // Associate seller entity
+      category, // Associate category entity
     });
+
     return this.productsRepository.save(product);
   }
 
@@ -59,7 +77,23 @@ export class SellersService {
     updateProductDto: UpdateProductDto,
   ): Promise<Product> {
     const product = await this.findOneProduct(id);
+
+    // If updating the category, fetch the new category entity
+    if (updateProductDto.categoryId) {
+      const category = await this.categoryRepository.findOne({
+        where: { id: updateProductDto.categoryId },
+      });
+      if (!category) {
+        throw new NotFoundException(
+          `Category with ID ${updateProductDto.categoryId} not found`,
+        );
+      }
+      product.category = category; // Update the category
+    }
+
+    // Update product details
     Object.assign(product, updateProductDto);
+
     return this.productsRepository.save(product);
   }
 
@@ -67,7 +101,7 @@ export class SellersService {
   async findOneProduct(id: number): Promise<Product> {
     const product = await this.productsRepository.findOne({
       where: { id },
-      relations: ['seller'], // Fetch the associated seller as well
+      relations: ['seller', 'category'], // Include related seller and category
     });
     if (!product) {
       throw new NotFoundException(`Product with ID ${id} not found`);
@@ -75,5 +109,5 @@ export class SellersService {
     return product;
   }
 
-  // Sales analytics logic can be implemented based on the orders data
+  // Implement sales analytics logic here, if needed
 }

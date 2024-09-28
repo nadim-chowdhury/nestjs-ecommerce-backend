@@ -6,9 +6,13 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  Index,
 } from 'typeorm';
 import { Address } from './address.entity';
-import { Order } from '../../orders/entities/order.entity'; // Import the Order entity
+import { Order } from '../../orders/entities/order.entity';
+import { Cart } from 'src/cart/entities/cart.entity';
+import { Wishlist } from 'src/wishlist/entities/wishlist.entity';
+import { Review } from 'src/reviews/entities/review.entity'; // Import Review entity
 
 @Entity('users')
 export class User {
@@ -25,6 +29,7 @@ export class User {
     description: 'The email of the user',
     uniqueItems: true,
   })
+  @Index('email_index')
   @Column({ unique: true })
   email: string;
 
@@ -33,6 +38,7 @@ export class User {
     description: 'The mobile number of the user',
     uniqueItems: true,
   })
+  @Index('mobileNumber_index')
   @Column({ unique: true })
   mobileNumber: string;
 
@@ -42,7 +48,7 @@ export class User {
     nullable: true,
   })
   @Column({ nullable: true })
-  password: string;
+  password: string | null;
 
   @ApiProperty({
     example: false,
@@ -64,7 +70,7 @@ export class User {
     nullable: true,
   })
   @Column({ nullable: true })
-  otp: string;
+  otp: string | null;
 
   @ApiProperty({
     example: '2024-09-27T12:34:56.789Z',
@@ -84,13 +90,39 @@ export class User {
     type: () => [Address],
     description: 'The list of addresses associated with the user',
   })
-  @OneToMany(() => Address, (address) => address.user, { cascade: true })
+  @OneToMany(() => Address, (address) => address.user, {
+    cascade: ['insert', 'update'],
+  })
   addresses: Address[];
 
   @ApiProperty({
     type: () => [Order],
     description: 'The list of orders associated with the user',
   })
-  @OneToMany(() => Order, (order) => order.user, { cascade: true })
-  orders: Order[]; // Each user can have multiple orders
+  @OneToMany(() => Order, (order) => order.user, {
+    cascade: ['insert', 'update'],
+  })
+  orders: Order[];
+
+  @ApiProperty({
+    type: () => [Cart],
+    description: 'The list of carts associated with the user',
+  })
+  @OneToMany(() => Cart, (cart) => cart.user, { cascade: true })
+  carts: Cart[];
+
+  @ApiProperty({
+    type: () => [Wishlist],
+    description: 'The list of wishlist items associated with the user',
+  })
+  @OneToMany(() => Wishlist, (wishlist) => wishlist.user, { cascade: true })
+  wishlists: Wishlist[];
+
+  // Add OneToMany relationship for reviews
+  @ApiProperty({
+    type: () => [Review],
+    description: 'The list of reviews written by the user',
+  })
+  @OneToMany(() => Review, (review) => review.user, { cascade: true })
+  reviews: Review[]; // Add this property
 }
