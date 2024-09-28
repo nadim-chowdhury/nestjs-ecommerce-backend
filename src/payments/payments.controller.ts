@@ -11,7 +11,7 @@ import { PaymentsService } from './payments.service';
 import { Request } from 'express';
 import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
 
-@ApiTags('payments') // Group under 'payments' tag in Swagger UI
+@ApiTags('Payments') // Group under 'payments' tag in Swagger UI
 @Controller('payments')
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}

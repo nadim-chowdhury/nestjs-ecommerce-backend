@@ -13,6 +13,8 @@ import { LoggerModule } from 'nestjs-pino';
 import { CartModule } from './cart/cart.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { WishlistModule } from './wishlist/wishlist.module';
+import { AdminModule } from './admin/admin.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -50,17 +52,19 @@ import { WishlistModule } from './wishlist/wishlist.module';
     }),
 
     // Feature Modules
-    UsersModule,
     AuthModule,
+    UsersModule,
+    AdminModule,
     SellersModule,
     DeliveryModule,
     ProductsModule,
     OrdersModule,
-    NotificationsModule,
-    ReportsModule,
-    ReviewsModule,
     CartModule,
     WishlistModule,
+    ReviewsModule,
+    ReportsModule,
+    NotificationsModule,
+    PaymentsModule,
   ],
 })
 export class AppModule {}
